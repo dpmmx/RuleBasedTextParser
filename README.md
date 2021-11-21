@@ -46,15 +46,15 @@ Input file should contains multiple sections which are separated by new line (`\
 
 ## Code Snippet:
 
->>> from RuleBasedTextParser import RuleBasedTextParser
->>> test = RuleBasedTextParser('input_file_2.txt','&','standard_definition.json','error_codes.json')
->>> test.run_parser()
+- >>> from RuleBasedTextParser import RuleBasedTextParser
+- >>> test = RuleBasedTextParser('input_file_2.txt','&','standard_definition.json','error_codes.json')
+- >>> test.run_parser()
 'L11 field under section L1 fails the max length (expected: 1) validation, however it passes the data type (digits) validation.L12 field under section L1 fails the max length (expected: 3) validation, however it passes the data type (word_characters) validation.L13 field under section L1 fails the max length (expected: 2) validation, however it passes the data type (word_characters) validation.L41 field under section L4 fails the data type (expected: word_characters) validation, however it passes the max length (1) validation.L42 field under section L4 is missing.'
 
 And also modify test.sentence_dict, which can be used to do unit testing
 
->>>test.sentence_dict = [['L1','1','ABC','AB']]
->>>test.run_parser()
+- >>>test.sentence_dict = [['L1','1','ABC','AB']]
+- >>>test.run_parser()
 'L11 field under segment L1 passes all the validation criteria.L12 field under segment L1 passes all the validation criteria.L13 field under segment L1 passes all the validation criteria.'
 
 ## Some Rules:
