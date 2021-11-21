@@ -25,14 +25,14 @@ Standard Rules to parse a input text file. It uses the following structure and P
 
 ## Error Json File:
 
-E01: "message_template": "LXY field under segment LX passes all the validation criteria."
-E02: "message_template": "LXY field under section LX fails the data type (expected: {data_type}) validation, however it passes the max length ({max_length}) validation"
-E03: "message_template": "LXY field under section LX fails the max length (expected: {data_type}) validation, however it passes the data type ({data_type}) validation"
-E04: "message_template": "LXY field under section LX fails all the validation criteria."
-E05: "message_template": "LXY field under section LX is missing."
+1. E01: "message_template": "LXY field under segment LX passes all the validation criteria."
+2. E02: "message_template": "LXY field under section LX fails the data type (expected: {data_type}) validation, however it passes the max length ({max_length}) validation"
+3. E03: "message_template": "LXY field under section LX fails the max length (expected: {data_type}) validation, however it passes the data type ({data_type}) validation"
+4. E04: "message_template": "LXY field under section LX fails all the validation criteria."
+5. E05: "message_template": "LXY field under section LX is missing."
 
-E06: "message_template": "LXY field under section LX contains other than `0-9` and `A-Z` (both lower and uppercase) including space."
-E07: "message_template": "LXY field under section LX is missing in standard definition file."
+6. E06: "message_template": "LXY field under section LX contains other than `0-9` and `A-Z` (both lower and uppercase) including space."
+7. E07: "message_template": "LXY field under section LX is missing in standard definition file."
 
 
 ## Input File:
