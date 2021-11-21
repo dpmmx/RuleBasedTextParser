@@ -6,11 +6,11 @@ Parses input text file, using the provided standard definition (Json File) and g
 Language: Python
 
 ## Version Details: 
-python   --> 3.8.12
-json     --> 2.0.9
-re       --> 2.2.1
-pandas   --> 1.3.4
-logging  --> 0.5.1.2
+- python   --> 3.8.12
+- json     --> 2.0.9
+- re       --> 2.2.1
+- pandas   --> 1.3.4
+- logging  --> 0.5.1.2
 
 ## Standard Definition Json File:
 
@@ -47,7 +47,7 @@ Input file should contains multiple sections which are separated by new line (`\
 ## Code Snippet:
 
 - from RuleBasedTextParser import RuleBasedTextParser
-- test = RuleBasedTextParser('input_file_2.txt','&','standard_definition.json','error_codes.json')
+- test = RuleBasedTextParser('input_file.txt','&','standard_definition.json','error_codes.json')
 - test.run_parser()
 - output : 'L11 field under section L1 fails the max length (expected: 1) validation, however it passes the data type (digits) validation.L12 field under section L1 fails the max length (expected: 3) validation, however it passes the data type (word_characters) validation.L13 field under section L1 fails the max length (expected: 2) validation, however it passes the data type (word_characters) validation.L41 field under section L4 fails the data type (expected: word_characters) validation, however it passes the max length (1) validation.L42 field under section L4 is missing.'
 
