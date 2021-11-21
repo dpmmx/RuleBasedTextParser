@@ -16,11 +16,11 @@ logging  --> 0.5.1.2
 
 Standard Rules to parse a input text file. It uses the following structure and Parsing Rules.
 
---> key (LX)
---> sub_sections (contains the following)
-----------------> key (sub_section: LXY)
-----------------> data_type ('digits' / 'word_characters')
-----------------> max_length (data type : int)
+- -> key (LX)
+- -> sub_sections (contains the following)
+- ---------------> key (sub_section: LXY)
+- ---------------> data_type ('digits' / 'word_characters')
+- ---------------> max_length (data type : int)
 
 
 ## Error Json File:
