@@ -46,22 +46,28 @@ Input file should contains multiple sections which are separated by new line (`\
 
 ## Code Snippet:
 
-- >>> from RuleBasedTextParser import RuleBasedTextParser
-- >>> test = RuleBasedTextParser('input_file_2.txt','&','standard_definition.json','error_codes.json')
-- >>> test.run_parser()
-'L11 field under section L1 fails the max length (expected: 1) validation, however it passes the data type (digits) validation.L12 field under section L1 fails the max length (expected: 3) validation, however it passes the data type (word_characters) validation.L13 field under section L1 fails the max length (expected: 2) validation, however it passes the data type (word_characters) validation.L41 field under section L4 fails the data type (expected: word_characters) validation, however it passes the max length (1) validation.L42 field under section L4 is missing.'
+- from RuleBasedTextParser import RuleBasedTextParser
+- test = RuleBasedTextParser('input_file_2.txt','&','standard_definition.json','error_codes.json')
+- test.run_parser()
+- output : 'L11 field under section L1 fails the max length (expected: 1) validation, however it passes the data type (digits) validation.L12 field under section L1 fails the max length (expected: 3) validation, however it passes the data type (word_characters) validation.L13 field under section L1 fails the max length (expected: 2) validation, however it passes the data type (word_characters) validation.L41 field under section L4 fails the data type (expected: word_characters) validation, however it passes the max length (1) validation.L42 field under section L4 is missing.'
 
 And also modify test.sentence_dict, which can be used to do unit testing
 
-- >>>test.sentence_dict = [['L1','1','ABC','AB']]
-- >>>test.run_parser()
-'L11 field under segment L1 passes all the validation criteria.L12 field under segment L1 passes all the validation criteria.L13 field under segment L1 passes all the validation criteria.'
+- test.sentence_dict = [['L1','1','ABC','AB']]
+- test.run_parser()
+- output : 'L11 field under segment L1 passes all the validation criteria.L12 field under segment L1 passes all the validation criteria.L13 field under segment L1 passes all the validation criteria.'
 
 ## Some Rules:
 
 1. digits are only numbers between `0-9` and word characters are english letters between `A-Z` (both lower and uppercase) including space.
 2. Empty spaces count towards the length of the field, e.g. length of `A A` is 3. 
 3. Used `others` as the datatype for datatypes other than `digits` and `word_characters`.
+
+## Output Files:
+
+- logfile.log : Provide step logs of the program.
+- report.csv  : Provide the parsing reports into csv contains columns like 'Section', 'Sub-Section', 'Given DataType', 'Expected DataType', 'Given Length', 'Expected MaxLength', 'Error Code'.
+- summary.txt : Provide parsing result i.e error code w.r.t each line.
 
 ## Unit Testing File
 
