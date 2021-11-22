@@ -26,10 +26,6 @@ class RuleBasedTextParser:
     report.csv  : Provide the parsing reports into csv contains columns like 'Section', 'Sub-Section', 'Given DataType', 'Expected DataType', 'Given Length', 'Expected MaxLength', 'Error Code'.
     summary.txt : Provide parsing result i.e error code w.r.t each line.
 
-
-    ----------------------------------------------------------------------------------------------------
-    Author : Mukesh Maji
-    ----------------------------------------------------------------------------------------------------
     '''
     
     # setting global variables
