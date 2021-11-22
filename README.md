@@ -65,9 +65,9 @@ And also modify test.sentence_dict, which can be used to do unit testing
 
 ## Output Files:
 
-- logfile.log : Provide step logs of the program.
-- report.csv  : Provide the parsing reports into csv contains columns like 'Section', 'Sub-Section', 'Given DataType', 'Expected DataType', 'Given Length', 'Expected MaxLength', 'Error Code'.
-- summary.txt : Provide parsing result i.e error code w.r.t each line.
+- logfile.log : Contains step logs of the program.
+- report.csv  : csv report of parsed input text contains columns like 'Section', 'Sub-Section', 'Given DataType', 'Expected DataType', 'Given Length', 'Expected MaxLength', 'Error Code'.
+- summary.txt : Contains parsing result i.e error code w.r.t each line.
 
 ## Unit Testing File
 
