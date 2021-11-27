@@ -255,7 +255,7 @@ class RuleBasedTextParser:
             for k in range(len(standard_definition)):
                 if standard_definition[k]["key"] == rule_string and len(standard_definition[k]["sub_sections"]) > j:
                     for m in range(len(standard_definition[k]["sub_sections"]) - j):
-                        msg = self.write_error(rule_string, j+m+1, '', standard_definition[k]["sub_sections"][j+m]["data_type"], '', standard_definition[k]["sub_sections"][j+m]["max_length"], 'E05')
+                        msg += self.write_error(rule_string, j+m+1, '', standard_definition[k]["sub_sections"][j+m]["data_type"], '', standard_definition[k]["sub_sections"][j+m]["max_length"], 'E05')
         
         rep_output_name = 'report'+time.strftime("%Y%m%d-%H%M%S")+'.csv'
         rep_output_fullname = os.path.join(outdir, rep_output_name)
