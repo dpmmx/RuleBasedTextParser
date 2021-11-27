@@ -4,6 +4,7 @@ import re
 import os
 import pandas as pd
 import logging
+import time
 
 class RuleBasedTextParser:
     '''
@@ -29,12 +30,12 @@ class RuleBasedTextParser:
     '''
     
     # setting global variables
-    global log_output_fullname, summary_output_fullname, rep_output_fullname, rule_line, parse_result_csv, summary, logger, msg
+    global log_output_fullname, summary_output_fullname, rep_output_fullname, rule_line, parse_result_csv, summary, logger, msg, outdir
     
     # setting require output and logging file name
     log_output_name = 'logfile.log'
     summary_output_name = 'summary.txt'
-    rep_output_name = 'report.csv'
+    # rep_output_name = 'report'+time.strftime("%Y%m%d-%H%M%S")+'.csv'
     
     # setting output directory
     outdir = 'parsed/'
@@ -43,8 +44,7 @@ class RuleBasedTextParser:
     
     # setting final output file paths
     log_output_fullname = os.path.join(outdir, log_output_name)
-    summary_output_fullname = os.path.join(outdir, summary_output_name)
-    rep_output_fullname = os.path.join(outdir, rep_output_name) 
+    summary_output_fullname = os.path.join(outdir, summary_output_name) 
 
     
     
@@ -118,6 +118,41 @@ class RuleBasedTextParser:
         except:
             raise FileNotFoundError("Error File not Loaded Properly. Check for File Name , Location.")
     
+    def write_error(self, rule_string, sub_string_num, given_datatype, expected_datatype, given_length, expected_length, error_code):
+        '''
+        Function used to Write Error Ouput in Output files.
+        
+        Attributes:
+        -----------
+        rrule_string : Data Type : str , values : {'L1', 'L2', 'L3', 'L4'}, Rule line as per Standard Definition json file.
+        sub_string_num : Data Type : int, Sub Section Position in a Line.   
+        given_datatype : Data Type : str
+        expected_datatype : Data Type : str
+        given_length : Data Type : int
+        expected_length : Data Type : int
+        error_code :  Data Type : str
+        '''
+        global parse_result_csv, summary, msg_parse_sentence
+
+        parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(sub_string_num),'Given DataType':given_datatype,'Expected DataType':expected_datatype,'Given Length':given_length,'Expected MaxLength':expected_length,'Error Code': error_code},ignore_index=True)
+        
+        if(error_code == 'E01'):
+            summary.write(f"{rule_string}{sub_string_num} field under segment {rule_string} passes all the validation criteria.\n")
+            msg_parse_sentence = f"{rule_string}{sub_string_num} field under segment {rule_string} passes all the validation criteria."   # for unittesting
+        elif(error_code == 'E02'):
+            summary.write(f"{rule_string}{sub_string_num} field under section {rule_string} fails the data type (expected: {expected_datatype}) validation, however it passes the max length ({expected_length}) validation.\n")
+            msg_parse_sentence = f"{rule_string}{sub_string_num} field under section {rule_string} fails the data type (expected: {expected_datatype}) validation, however it passes the max length ({expected_length}) validation."   # for unittesting
+        elif(error_code == 'E03'):
+            summary.write(f"{rule_string}{sub_string_num} field under section {rule_string} fails the max length (expected: {expected_length}) validation, however it passes the data type ({expected_datatype}) validation.\n")
+            msg_parse_sentence = f"{rule_string}{sub_string_num} field under section {rule_string} fails the max length (expected: {expected_length}) validation, however it passes the data type ({expected_datatype}) validation."   # for unittesting
+        elif(error_code == 'E04'):
+            summary.write(f"{rule_string}{sub_string_num} field under section {rule_string} fails all the validation criteria.\n")
+            msg_parse_sentence = f"{rule_string}{sub_string_num} field under section {rule_string} fails all the validation criteria."   # for unittesting
+        elif(error_code == 'E05'):
+            summary.write(f"{rule_string}{sub_string_num} field under section {rule_string} is missing.\n")
+            msg_parse_sentence += f"{rule_string}{sub_string_num} field under section {rule_string} is missing."   # for unittesting
+        return msg_parse_sentence
+
     def parse_text(self, standard_definition, input_sentence, rule_string, sub_string_num):
         '''
         Function used to parse the input file using a standard definition json file and generate a summary report.
@@ -130,55 +165,45 @@ class RuleBasedTextParser:
         sub_string_num : Data Type : int, Sub Section Position in a Line.        
         '''
         global parse_result_csv, summary, msg_parse_sentence
-               
+        feeded_datatype = ""
+        feeded_max_length = 0
+
+
         try:
             input_sentence = int(input_sentence)
         except:
             pass
         for i in range(len(rule_line)):
             if standard_definition[i]["key"] == rule_string:
-                # Checking only digits [0-9], [A-Z], [a-z] and Space [' '] is in input sentences passed through input text file. If any other character is there in input text will result Error Code E06 , which is added by me.
-                # Error Code E06 - {rule_string}{sub_string_num+1} field under section {rule_string} contains other than `0-9` and `A-Z` (both lower and uppercase) including space.
+
+                # checking for datatype of input sentence
                 if len(re.sub("[A-Za-z0-9 ]", '', str(input_sentence))) > 0:
-                    parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(sub_string_num+1),'Given DataType':'others','Expected DataType':standard_definition[i]["sub_sections"][sub_string_num]["data_type"],'Given Length':len(str(input_sentence)),'Expected MaxLength':standard_definition[i]["sub_sections"][sub_string_num]["max_length"],'Error Code':'E06 (Added by Me)'},ignore_index=True)
-                    summary.write(f"Error Code Added By Me {rule_string}{sub_string_num+1} field under section {rule_string} contains other than `0-9` and `A-Z` (both lower and uppercase) including space.\n")
-                    msg_parse_sentence = f"Error Code Added By Me {rule_string}{sub_string_num+1} field under section {rule_string} contains other than `0-9` and `A-Z` (both lower and uppercase) including space."
-
-                # Checking for E03 where max length failed but data type passed and input datatype is for digits
-                elif (standard_definition[i]["sub_sections"][sub_string_num]["data_type"] == "digits" and (type(input_sentence) is int) == True) and ((len(str(input_sentence)) != standard_definition[i]["sub_sections"][sub_string_num]["max_length"])):
-                    parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(sub_string_num+1),'Given DataType':'digits','Expected DataType':'digits','Given Length':len(str(input_sentence)),'Expected MaxLength':standard_definition[i]["sub_sections"][sub_string_num]["max_length"],'Error Code':'E03'},ignore_index=True)
-                    summary.write(f"{rule_string}{sub_string_num+1} field under section {rule_string} fails the max length (expected: {standard_definition[i]['sub_sections'][sub_string_num]['max_length']}) validation, however it passes the data type ({standard_definition[i]['sub_sections'][sub_string_num]['data_type']}) validation.\n")
-                    msg_parse_sentence = f"{rule_string}{sub_string_num+1} field under section {rule_string} fails the max length (expected: {standard_definition[i]['sub_sections'][sub_string_num]['max_length']}) validation, however it passes the data type ({standard_definition[i]['sub_sections'][sub_string_num]['data_type']}) validation."
-
-                # Checking for E02 where max length passed but data type failed and input datatype is for digits
-                elif (standard_definition[i]["sub_sections"][sub_string_num]["data_type"] == "digits" and (type(input_sentence) is int) == False) and ((len(str(input_sentence)) == standard_definition[i]["sub_sections"][sub_string_num]["max_length"])):
-                    parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(sub_string_num+1),'Given DataType':'digits','Expected DataType':'digits','Given Length':len(str(input_sentence)),'Expected MaxLength':standard_definition[i]["sub_sections"][sub_string_num]["max_length"],'Error Code':'E02'},ignore_index=True)
-                    summary.write(f"{rule_string}{sub_string_num+1} field under section {rule_string} fails the data type (expected: {standard_definition[i]['sub_sections'][sub_string_num]['data_type']}) validation, however it passes the max length ({standard_definition[i]['sub_sections'][sub_string_num]['max_length']}) validation.\n")
-                    msg_parse_sentence = f"{rule_string}{sub_string_num+1} field under section {rule_string} fails the data type (expected: {standard_definition[i]['sub_sections'][sub_string_num]['data_type']}) validation, however it passes the max length ({standard_definition[i]['sub_sections'][sub_string_num]['max_length']}) validation."
-
-                # Checking for E03 where max length failed but data type passed and input datatype is for word_characters
-                elif (standard_definition[i]["sub_sections"][sub_string_num]["data_type"] == "word_characters" and (type(input_sentence) is str) == True) and ((len(str(input_sentence)) != standard_definition[i]["sub_sections"][sub_string_num]["max_length"])):
-                    parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(sub_string_num+1),'Given DataType':'word_characters','Expected DataType':'word_characters','Given Length':len(str(input_sentence)),'Expected MaxLength':standard_definition[i]["sub_sections"][sub_string_num]["max_length"],'Error Code':'E03'},ignore_index=True)
-                    summary.write(f"{rule_string}{sub_string_num+1} field under section {rule_string} fails the max length (expected: {standard_definition[i]['sub_sections'][sub_string_num]['max_length']}) validation, however it passes the data type ({standard_definition[i]['sub_sections'][sub_string_num]['data_type']}) validation.\n")
-                    msg_parse_sentence = f"{rule_string}{sub_string_num+1} field under section {rule_string} fails the max length (expected: {standard_definition[i]['sub_sections'][sub_string_num]['max_length']}) validation, however it passes the data type ({standard_definition[i]['sub_sections'][sub_string_num]['data_type']}) validation."
-
-                # Checking for E02 where max length passed but data type failed and input datatype is for word_characters
-                elif (standard_definition[i]["sub_sections"][sub_string_num]["data_type"] == "word_characters" and (type(input_sentence) is str) == False) and ((len(str(input_sentence)) == standard_definition[i]["sub_sections"][sub_string_num]["max_length"])):
-                    parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(sub_string_num+1),'Given DataType':'digits','Expected DataType':'word_characters','Given Length':len(str(input_sentence)),'Expected MaxLength':standard_definition[i]["sub_sections"][sub_string_num]["max_length"],'Error Code':'E02'},ignore_index=True)
-                    summary.write(f"{rule_string}{sub_string_num+1} field under section {rule_string} fails the data type (expected: {standard_definition[i]['sub_sections'][sub_string_num]['data_type']}) validation, however it passes the max length ({standard_definition[i]['sub_sections'][sub_string_num]['max_length']}) validation.\n")
-                    msg_parse_sentence = f"{rule_string}{sub_string_num+1} field under section {rule_string} fails the data type (expected: {standard_definition[i]['sub_sections'][sub_string_num]['data_type']}) validation, however it passes the max length ({standard_definition[i]['sub_sections'][sub_string_num]['max_length']}) validation."
-
-                # Checking for E04 where both max length and data type failed and input datatype is for both digits and word_characters
-                elif ((standard_definition[i]["sub_sections"][sub_string_num]["data_type"] == "digits" and (type(input_sentence) is int) == False) and ((len(str(input_sentence)) != standard_definition[i]["sub_sections"][sub_string_num]["max_length"])) or (standard_definition[i]["sub_sections"][sub_string_num]["data_type"] == "word_characters" and (type(input_sentence) is str) == False) and ((len(str(input_sentence)) != standard_definition[i]["sub_sections"][sub_string_num]["max_length"]))):
-                    parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(sub_string_num+1),'Given DataType':'digits','Expected DataType':'digits','Given Length':len(str(input_sentence)),'Expected MaxLength':standard_definition[i]["sub_sections"][sub_string_num]["max_length"],'Error Code':'E04'},ignore_index=True)
-                    summary.write(f"{rule_string}{sub_string_num+1} field under section {rule_string} fails all the validation criteria.\n")
-                    msg_parse_sentence = f"{rule_string}{sub_string_num+1} field under section {rule_string} fails all the validation criteria."
-
-                # Checking for E01 where both max length and data type passed and input datatype is for both digits and word_characters
+                    feeded_datatype = 'others'
+                elif (type(input_sentence) is int) == True :
+                    feeded_datatype = 'digits'
                 else:
-                    parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(sub_string_num+1),'Given DataType':'digits','Expected DataType':'digits','Given Length':len(str(input_sentence)),'Expected MaxLength':standard_definition[i]["sub_sections"][sub_string_num]["max_length"],'Error Code':'E01'},ignore_index=True)
-                    summary.write(f"{rule_string}{sub_string_num+1} field under segment {rule_string} passes all the validation criteria.\n")
-                    msg_parse_sentence = f"{rule_string}{sub_string_num+1} field under segment {rule_string} passes all the validation criteria."
+                    feeded_datatype = 'word_characters'
+                
+                # if input sentence is not null
+                if len(str(input_sentence)) > 0:
+                    feeded_max_length = len(str(input_sentence))
+                    # E03 Error Code checking 
+                    if(standard_definition[i]["sub_sections"][sub_string_num]["data_type"] == feeded_datatype) and (feeded_max_length > standard_definition[i]["sub_sections"][sub_string_num]["max_length"]):
+                        msg_parse_sentence = self.write_error(rule_string, sub_string_num+1, feeded_datatype, standard_definition[i]["sub_sections"][sub_string_num]["data_type"], feeded_max_length, standard_definition[i]["sub_sections"][sub_string_num]["max_length"], 'E03')
+                    # E02 Error Code checking
+                    elif(standard_definition[i]["sub_sections"][sub_string_num]["data_type"] != feeded_datatype) and (feeded_max_length <= standard_definition[i]["sub_sections"][sub_string_num]["max_length"]):
+                        msg_parse_sentence = self.write_error(rule_string, sub_string_num+1, feeded_datatype, standard_definition[i]["sub_sections"][sub_string_num]["data_type"], feeded_max_length, standard_definition[i]["sub_sections"][sub_string_num]["max_length"], 'E02')
+                    # E04 Error Code checking
+                    elif(standard_definition[i]["sub_sections"][sub_string_num]["data_type"] != feeded_datatype) and (feeded_max_length > standard_definition[i]["sub_sections"][sub_string_num]["max_length"]):
+                        msg_parse_sentence = self.write_error(rule_string, sub_string_num+1, feeded_datatype, standard_definition[i]["sub_sections"][sub_string_num]["data_type"], feeded_max_length, standard_definition[i]["sub_sections"][sub_string_num]["max_length"], 'E04')
+                    # if all okay E01 Error Code
+                    else:
+                        msg_parse_sentence = self.write_error(rule_string, sub_string_num+1, feeded_datatype, standard_definition[i]["sub_sections"][sub_string_num]["data_type"], feeded_max_length, standard_definition[i]["sub_sections"][sub_string_num]["max_length"], 'E01')
+                # if input sentence is null E04
+                else:
+                    msg_parse_sentence = self.write_error(rule_string, sub_string_num+1, '', standard_definition[i]["sub_sections"][sub_string_num]["data_type"], '', standard_definition[i]["sub_sections"][sub_string_num]["max_length"], 'E04')
+                
+                
         return msg_parse_sentence
 
     def run_parser(self):
@@ -221,18 +246,19 @@ class RuleBasedTextParser:
                     try:                                                                                             # fails if input contains a sub section that not available in standard definition file
                         msg += self.parse_text(standard_definition, input_dict[i][j],rule_string,j-1)                # calling parse_text function
                     except IndexError as err:                                                                        # error raised if Rule Line or Sub Section not available in standard definition file
-                        parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(j),'Given DataType':'','Expected DataType':'','Given Length':'','Expected MaxLength':'','Error Code':'E05'},ignore_index=True)
-                        summary.write(f"{rule_string}{j} field under section {rule_string} is missing in standard definition file.\n")
-                        msg += f"{rule_string}{j} field under section {rule_string} is missing in standard definition file."           # for unittesting
+                        # parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(j),'Given DataType':'','Expected DataType':'','Given Length':'','Expected MaxLength':'','Error Code':'E05'},ignore_index=True)
+                        # summary.write(f"{rule_string}{j} field under section {rule_string} is missing in standard definition file.\n")
+                        # msg += f"{rule_string}{j} field under section {rule_string} is missing in standard definition file."           # for unittesting
+                        pass
         
-            # checking for any missing section in input file
+            # checking for any missing section in input file - E05
             for k in range(len(standard_definition)):
                 if standard_definition[k]["key"] == rule_string and len(standard_definition[k]["sub_sections"]) > j:
                     for m in range(len(standard_definition[k]["sub_sections"]) - j):
-                        parse_result_csv = parse_result_csv.append({'Section':rule_string,'Sub-Section':rule_string+str(j+m+1),'Given DataType':'','Expected DataType':'','Given Length':'','Expected MaxLength':'','Error Code':'E05'},ignore_index=True)
-                        summary.write(f"{rule_string}{j+m+1} field under section {rule_string} is missing.\n")
-                        msg += f"{rule_string}{j+m+1} field under section {rule_string} is missing."                  # for unittesting
+                        msg = self.write_error(rule_string, j+m+1, '', standard_definition[k]["sub_sections"][j+m]["data_type"], '', standard_definition[k]["sub_sections"][j+m]["max_length"], 'E05')
         
+        rep_output_name = 'report'+time.strftime("%Y%m%d-%H%M%S")+'.csv'
+        rep_output_fullname = os.path.join(outdir, rep_output_name)
         parse_result_csv.to_csv(rep_output_fullname, index=False)
         summary.close()
         logging.shutdown()
