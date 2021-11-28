@@ -31,10 +31,6 @@ Standard Rules to parse a input text file. It uses the following structure and P
 4. E04: "message_template": "LXY field under section LX fails all the validation criteria."
 5. E05: "message_template": "LXY field under section LX is missing."
 
-6. E06: "message_template": "LXY field under section LX contains other than `0-9` and `A-Z` (both lower and uppercase) including space."
-7. E07: "message_template": "LXY field under section LX is missing in standard definition file."
-
-
 ## Input File:
 
 Input file should contains multiple sections which are separated by new line (`\n`) character, and the sections are sub-separated by ampersand character (`&`)
